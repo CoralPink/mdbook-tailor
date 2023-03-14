@@ -1,0 +1,20 @@
+[package]
+name = "mdbook-tailor"
+version = "0.0.3"
+authors = ["CoralPink <teqt6ytqt@mozmail.com>"]
+license = "MIT"
+homepage = ""
+repository = ""
+documentation = ""
+edition = "2021"
+description = "mdbook preprocessor for image-tailor"
+keywords = ["mdbook", "image", "tailor"]
+
+[dependencies]
+clap = "4.1"
+mdbook = "0.4"
+semver = "1.0"
+serde_json = "1.0"
+lazy_static = "1.4"
+regex = "1.7"
+image = "0.24"
