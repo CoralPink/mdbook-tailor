@@ -1,6 +1,7 @@
 use crate::tailor_lib::Tailor;
 
 use clap::{Arg, ArgMatches, Command};
+use image::open;
 use lazy_static::lazy_static;
 use mdbook::{
     book::Book,
@@ -11,8 +12,6 @@ use regex::Regex;
 use semver::{Version, VersionReq};
 use std::path::Path;
 use std::{io, process};
-
-use image::open;
 
 pub fn make_app() -> Command {
     Command::new("tailor-preprocessor")
@@ -91,6 +90,7 @@ mod tailor_lib {
         fn name(&self) -> &str {
             "tailor-preprocessor"
         }
+
         fn run(&self, _ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
             book.for_each_mut(|item| {
                 if let mdbook::book::BookItem::Chapter(chap) = item {
@@ -101,15 +101,22 @@ mod tailor_lib {
                         None => Path::new(""),
                     };
 
+                    let mut line_image_count = 0;
+
                     chap.content = TAILOR_RE
                         .replace_all(&chap.content, |caps: &regex::Captures| {
+                            if line_image_count >= 2 {
+                                return caps[0].to_string();
+                            }
+                            line_image_count += 1;
+
                             let path = caps.name("path").unwrap().as_str();
                             let alt = caps.name("alt").unwrap().as_str();
 
                             let image = open(Path::new("src").join(dir.join(path))).unwrap();
 
                             format!(
-                                "<img src={} alt={} width={} height={} />",
+                                "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\">",
                                 path,
                                 alt,
                                 image.width(),
