@@ -8,10 +8,9 @@ use mdbook::{
     errors::Error,
     preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext},
 };
-use regex::{Regex, RegexBuilder};
+use regex::Regex;
 use semver::{Version, VersionReq};
-use std::path::Path;
-use std::{io, process};
+use std::{io, path::Path, process};
 
 pub fn make_app() -> Command {
     Command::new("tailor-preprocessor")
@@ -74,12 +73,8 @@ fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
 }
 
 lazy_static! {
-    static ref TAILOR_RE: Regex = RegexBuilder::new(
-        r"(?m)(?P<previous_line>^[^|]*\|.*\n)?^(?P<image>!\[(?P<alt>.*)]\((?P<path>[^)]+)\))"
-    )
-    .multi_line(true)
-    .build()
-    .unwrap();
+    static ref TAILOR_RE: Regex =
+        Regex::new(r"(?m)^(?P<indent>\s*)!(?P<alt>\[[^\]]*\])\((?P<path>[^)]+)\)$").unwrap();
 }
 
 mod tailor_lib {
@@ -114,28 +109,8 @@ mod tailor_lib {
                         None => Path::new(""),
                     };
 
-                    let mut line_image_count = 0;
-                    let mut previous_line_image_count = 0;
-
                     chap.content = TAILOR_RE
                         .replace_all(&chap.content, |caps: &regex::Captures| {
-                            // skip if more than 1 image on line
-                            if line_image_count >= 1 {
-                                return caps.name("image").unwrap().as_str().to_string();
-                            }
-
-                            // skip if the previous line contains an image
-                            if let Some(previous_line) = caps.name("previous_line") {
-                                let re = Regex::new(r"!\[").unwrap();
-                                if re.is_match(previous_line.as_str()) {
-                                    previous_line_image_count += 1;
-                                }
-                            }
-                            if previous_line_image_count >= 1 {
-                                return caps[0].to_string();
-                            }
-                            line_image_count += 1;
-
                             let path = caps.name("path").unwrap().as_str();
                             let alt = caps.name("alt").unwrap().as_str();
 
