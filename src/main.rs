@@ -117,7 +117,7 @@ mod tailor_lib {
                             let image = open(Path::new(&src).join(dir.join(path))).unwrap();
 
                             format!(
-                                "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\">",
+                                "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\" loading=\"lazy\">",
                                 path,
                                 alt,
                                 image.width(),
