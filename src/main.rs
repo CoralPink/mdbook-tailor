@@ -4,7 +4,7 @@ use clap::{Arg, ArgMatches, Command};
 use image::open;
 use lazy_static::lazy_static;
 use mdbook::{
-    book::Book,
+    book::{Book, BookItem},
     errors::Error,
     preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext},
 };
@@ -29,7 +29,8 @@ fn main() {
 
     if let Some(sub_args) = matches.subcommand_matches("supports") {
         handle_supports(&preprocessor, sub_args);
-    } else if let Err(e) = handle_preprocessing(&preprocessor) {
+    }
+    else if let Err(e) = handle_preprocessing(&preprocessor) {
         eprintln!("{e}");
         process::exit(1);
     }
@@ -66,7 +67,8 @@ fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
     // Signal whether the renderer is supported by exiting with 1 or 0.
     if supported {
         process::exit(0);
-    } else {
+    }
+    else {
         process::exit(1);
     }
 }
@@ -96,9 +98,15 @@ mod tailor_lib {
             "tailor-preprocessor"
         }
 
-        fn run(&self, _ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
+        fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
+            let src = ctx
+                .config
+                .get("build.src")
+                .and_then(|v| v.as_str())
+                .unwrap_or("src");
+
             book.for_each_mut(|item| {
-                if let mdbook::book::BookItem::Chapter(chap) = item {
+                if let BookItem::Chapter(chap) = item {
                     let parent = Path::new(chap.path.as_ref().unwrap()).parent();
 
                     let dir = match parent {
@@ -131,7 +139,7 @@ mod tailor_lib {
                             let path = caps.name("path").unwrap().as_str();
                             let alt = caps.name("alt").unwrap().as_str();
 
-                            let image = open(Path::new("src").join(dir.join(path))).unwrap();
+                            let image = open(Path::new(&src).join(dir.join(path))).unwrap();
 
                             format!(
                                 "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\">",
