@@ -1,6 +1,72 @@
 # mdbook-tailor
 
-This project is still in its pilot version 👩‍✈️
+This is a preprocessor for [mdbook](https://github.com/rust-lang/mdBook).
+
+We plan to take some more time before a major release 🐣
+
+_🔺It includes some issues as noted in Issues._
+
+## Purpose
+
+The following warnings in [PageSpeed Insights](https://pagespeed.web.dev) can be eliminated by using this preprocessor.
+
+![warning](res/warning.webp)
+
+Explicitly setting the width and height of image elements will reduce layout deviations and improve CLS.
+
+(However, not all of them can be solved...)
+
+## Corresponding image file
+
+The image files that this project can handle depend on Imaging library.
+
+[An Image Processing Library](https://crates.io/crates/image)
+
+It supports `PNG`, `JPEG`, `GIF`, `WebP`, `AVIF` etc. as generally used in web pages 😉
+
+## Installation
+
+1. Use `cargo` to install.
+
+```sh
+cargo install mdbook-tailor
+```
+
+2. Add the following to `book.toml`.
+
+```toml
+[preprocessor.tailor]
+```
+
+## Usage
+
+1. Use markdown notation as usual.
+
+```markdown
+![example](example.webp)
+```
+
+2. Do the mdbook build as usual. 
+
+```sh
+mdbook build
+```
+
+The `HTML` generated from the above steps should contain the image size as measured by the `mdbook-tailor`.
+In addition, a delayed loading setting will be added!
+
+```html
+<img src="example.webp" alt="example" width="789" height="456" loading="lazy">
+```
+
+## Example
+
+This is actually a site I am producing myself ☺️
+
+ * GitHub Pages
+   https://coralpink.github.io/commentary
+ * GitHub
+   https://github.com/CoralPink/commentary
 
 ## License
 
