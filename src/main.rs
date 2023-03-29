@@ -74,7 +74,7 @@ fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
 
 lazy_static! {
     static ref TAILOR_RE: Regex =
-        Regex::new(r"(?m)^(?P<indent>\s*)!(?P<alt>\[[^\]]*\])\((?P<path>[^)]+)\)$").unwrap();
+        Regex::new(r"(?m)^(\s*)!\[(?P<alt>.*)]\(\s*(?P<path>.*)\)").unwrap();
 }
 
 mod tailor_lib {
