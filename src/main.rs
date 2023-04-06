@@ -1,16 +1,17 @@
+mod tailor;
+
 use crate::tailor_lib::Tailor;
 
 use clap::{Arg, ArgMatches, Command};
-use image::open;
 use lazy_static::lazy_static;
 use mdbook::{
-    book::{Book, BookItem},
+    book::Book,
     errors::Error,
     preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext},
 };
 use regex::Regex;
 use semver::{Version, VersionReq};
-use std::{io, path::Path, process};
+use std::{io, process};
 
 pub fn make_app() -> Command {
     Command::new("tailor-preprocessor")
@@ -22,15 +23,18 @@ pub fn make_app() -> Command {
         )
 }
 
-fn main() {
-    let matches = make_app().get_matches();
-    let preprocessor = Tailor::new();
+fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
+    let renderer = sub_args
+        .get_one::<String>("renderer")
+        .expect("Required argument");
 
-    if let Some(sub_args) = matches.subcommand_matches("supports") {
-        handle_supports(&preprocessor, sub_args);
+    let supported = pre.supports_renderer(renderer);
+
+    // Signal whether the renderer is supported by exiting with 1 or 0.
+    if supported {
+        process::exit(0);
     }
-    else if let Err(e) = handle_preprocessing(&preprocessor) {
-        eprintln!("{e}");
+    else {
         process::exit(1);
     }
 }
@@ -56,18 +60,15 @@ fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<(), Error> {
     Ok(())
 }
 
-fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
-    let renderer = sub_args
-        .get_one::<String>("renderer")
-        .expect("Required argument");
+fn main() {
+    let matches = make_app().get_matches();
+    let preprocessor = Tailor::new();
 
-    let supported = pre.supports_renderer(renderer);
-
-    // Signal whether the renderer is supported by exiting with 1 or 0.
-    if supported {
-        process::exit(0);
+    if let Some(sub_args) = matches.subcommand_matches("supports") {
+        handle_supports(&preprocessor, sub_args);
     }
-    else {
+    else if let Err(e) = handle_preprocessing(&preprocessor) {
+        eprintln!("{e}");
         process::exit(1);
     }
 }
@@ -93,42 +94,16 @@ mod tailor_lib {
             "tailor-preprocessor"
         }
 
-        fn run(&self, ctx: &PreprocessorContext, mut book: Book) -> Result<Book, Error> {
-            let src = ctx
-                .config
-                .get("build.src")
-                .and_then(|v| v.as_str())
-                .unwrap_or("src");
-
-            book.for_each_mut(|item| {
-                if let BookItem::Chapter(chap) = item {
-                    let parent = Path::new(chap.path.as_ref().unwrap()).parent();
-
-                    let dir = match parent {
-                        Some(p) => p,
-                        None => Path::new(""),
-                    };
-
-                    chap.content = TAILOR_RE
-                        .replace_all(&chap.content, |caps: &regex::Captures| {
-                            let path = caps.name("path").unwrap().as_str();
-                            let alt = caps.name("alt").unwrap().as_str();
-
-                            let image = open(Path::new(&src).join(dir.join(path))).unwrap();
-
-                            format!(
-                                "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\" loading=\"lazy\">",
-                                path,
-                                alt,
-                                image.width(),
-                                image.height(),
-                            )
-                        })
-                        .to_string();
-                }
-            });
-            Ok(book)
+        fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
+            tailor::measure(
+                ctx.config
+                    .get("build.src")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("src"),
+                book,
+            )
         }
+
         fn supports_renderer(&self, renderer: &str) -> bool {
             renderer != "not-supported"
         }
