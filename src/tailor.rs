@@ -15,9 +15,7 @@ lazy_static! {
 pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
     book.for_each_mut(|item| {
         if let BookItem::Chapter(chap) = item {
-            let parent = Path::new(chap.path.as_ref().unwrap()).parent();
-
-            let dir = match parent {
+            let dir = match Path::new(chap.path.as_ref().unwrap()).parent(){
                 Some(p) => p,
                 None => Path::new(""),
             };
@@ -25,17 +23,22 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
             chap.content = TAILOR_RE
                 .replace_all(&chap.content, |caps: &regex::Captures| {
                     let path = caps.name("path").unwrap().as_str();
-                    let alt = caps.name("alt").unwrap().as_str();
 
-                    let image = open(Path::new(&src).join(dir.join(path))).unwrap();
-
-                    format!(
-                        "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\" loading=\"lazy\">",
-                        path,
-                        alt,
-                        image.width(),
-                        image.height(),
-                    )
+                    match open(Path::new(&src).join(dir.join(path))) {
+                        Ok(image) => {
+                            format!(
+                                "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\" loading=\"lazy\">",
+                                path,
+                                caps.name("alt").unwrap().as_str(),
+                                image.width(),
+                                image.height(),
+                            )
+                        }
+                        Err(_) => {
+                            eprintln!("Warning: Tailor could not find: {}/{}", dir.display(), path);
+                            chap.content.clone()
+                        },
+                    }
                 })
                 .to_string();
         }
