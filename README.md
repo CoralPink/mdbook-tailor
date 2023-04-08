@@ -4,7 +4,7 @@ This is a preprocessor for [mdbook](https://github.com/rust-lang/mdBook).
 
 We plan to take some more time before a major release 🐣
 
-_🔺It includes some issues as noted in Issues._
+_🔺It includes some issues as noted in [Issues](https://github.com/CoralPink/mdbook-tailor/issues)._
 
 ## Purpose
 
@@ -13,8 +13,6 @@ The following warnings in [PageSpeed Insights](https://pagespeed.web.dev) can be
 ![warning](res/warning.webp)
 
 Explicitly setting the width and height of image elements will reduce layout deviations and improve CLS.
-
-(However, not all of them can be solved...)
 
 ## Corresponding image file
 
@@ -58,6 +56,20 @@ In addition, a delayed loading setting will be added!
 ```html
 <img src="example.webp" alt="example" width="789" height="456" loading="lazy">
 ```
+
+## Precautions
+
+Images in markdown tables are not detected.
+
+Ex)
+
+```markdown
+|Header Left|Header Right|
+|:---:|:---:|
+|![left](l.webp)|![right](r.webp)|
+```
+
+Naturally I would like to be able to detect and process this as well, but I must admit I am out of my depth...❗😿
 
 ## Example
 
