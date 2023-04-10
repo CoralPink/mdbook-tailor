@@ -2,12 +2,13 @@
 name = "mdbook-tailor"
 version = "0.2.2"
 authors = ["CoralPink <teqt6ytqt@mozmail.com>"]
-license = "MIT OR Apache-2.0"
+edition = "2021"
+rust-version = "1.68"
+description = "mdbook preprocessor for image-tailor"
+documentation = "https://github.com/CoralPink/mdbook-tailor/blob/main/README.md"
 homepage = "https://github.com/CoralPink"
 repository = "https://github.com/CoralPink/mdbook-tailor"
-documentation = "https://github.com/CoralPink/mdbook-tailor/blob/main/README.md"
-edition = "2021"
-description = "mdbook preprocessor for image-tailor"
+license = "MIT OR Apache-2.0"
 keywords = ["mdbook", "image", "tailor"]
 
 [dependencies]
