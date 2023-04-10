@@ -1,5 +1,3 @@
-mod tailor;
-
 use crate::tailor_lib::Tailor;
 
 use clap::{Arg, ArgMatches, Command};
@@ -95,7 +93,7 @@ mod tailor_lib {
         }
 
         fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
-            tailor::measure(
+            mdbook_tailor::measure(
                 ctx.config
                     .get("build.src")
                     .and_then(|v| v.as_str())
