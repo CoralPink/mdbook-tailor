@@ -1,15 +1,45 @@
 use crate::tailor_lib::Tailor;
 
 use clap::{Arg, ArgMatches, Command};
-use lazy_static::lazy_static;
 use mdbook::{
     book::Book,
     errors::Error,
     preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext},
 };
-use regex::Regex;
 use semver::{Version, VersionReq};
 use std::{io, process};
+
+mod tailor_lib {
+    use super::*;
+
+    pub struct Tailor;
+
+    impl Tailor {
+        pub fn new() -> Tailor {
+            Tailor
+        }
+    }
+
+    impl Preprocessor for Tailor {
+        fn name(&self) -> &str {
+            "tailor-preprocessor"
+        }
+
+        fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
+            mdbook_tailor::measure(
+                ctx.config
+                    .get("build.src")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("src"),
+                book,
+            )
+        }
+
+        fn supports_renderer(&self, renderer: &str) -> bool {
+            renderer != "not-supported"
+        }
+    }
+}
 
 pub fn make_app() -> Command {
     Command::new("tailor-preprocessor")
@@ -68,42 +98,5 @@ fn main() {
     else if let Err(e) = handle_preprocessing(&preprocessor) {
         eprintln!("{e}");
         process::exit(1);
-    }
-}
-
-lazy_static! {
-    static ref TAILOR_RE: Regex =
-        Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<path>[^)]*)\)$").unwrap();
-}
-
-mod tailor_lib {
-    use super::*;
-
-    pub struct Tailor;
-
-    impl Tailor {
-        pub fn new() -> Tailor {
-            Tailor
-        }
-    }
-
-    impl Preprocessor for Tailor {
-        fn name(&self) -> &str {
-            "tailor-preprocessor"
-        }
-
-        fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
-            mdbook_tailor::measure(
-                ctx.config
-                    .get("build.src")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("src"),
-                book,
-            )
-        }
-
-        fn supports_renderer(&self, renderer: &str) -> bool {
-            renderer != "not-supported"
-        }
     }
 }
