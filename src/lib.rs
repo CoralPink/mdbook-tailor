@@ -39,7 +39,7 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
                                 path.display(),
                                 mdfile
                             );
-                            chap.content.clone()
+                            String::from(caps.get(0).map_or("", |caps_0| caps_0.as_str()))
                         },
                     }
                 })
