@@ -65,6 +65,7 @@ mod tests {
 
     const CLR_RESET: &str = "\x1b[0m";
     const CLR_R: &str = "\x1b[31m";
+    const CLR_C: &str = "\x1b[36m";
 
     const TEST_DIR: &str = "test/";
     const TEST_MD: &str = "test.md";
@@ -89,6 +90,8 @@ mod tests {
             std::path::Path::new(TEST_MD),
             vec![],
         )));
+
+        println!("{CLR_C}[INFO]{CLR_RESET} Depending on the test case, [WARNING] may be displayed.");
 
         match measure(TEST_DIR, book) {
             Ok(book) => {
