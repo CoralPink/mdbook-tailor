@@ -7,6 +7,11 @@ use mdbook::{
 use regex::Regex;
 use std::path::Path;
 
+const CLR_RESET: &str = "\x1b[0m";
+const CLR_C: &str = "\x1b[36m";
+const CLR_M: &str = "\x1b[35m";
+const CLR_Y: &str = "\x1b[33m";
+
 lazy_static! {
     static ref TAILOR_RE: Regex =
         Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$")
@@ -35,11 +40,11 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
                             )
                         }
                         Err(_) => {
-                            eprintln!("\x1b[33m [Warning]\x1b[0m Tailor could not find: \x1b[35m{}\x1b[0m From \x1b[36m{}\x1b[0m",
+                            eprintln!("{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
                                 path.display(),
                                 mdfile
                             );
-                            String::from(caps.get(0).map_or("", |caps_0| caps_0.as_str()))
+                            String::from(caps.get(0).map_or("", |x| x.as_str()))
                         },
                     }
                 })
