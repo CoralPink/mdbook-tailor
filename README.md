@@ -20,7 +20,9 @@ The image files that this project can handle depend on Imaging library.
 
 [An Image Processing Library](https://crates.io/crates/image)
 
-It supports `PNG`, `JPEG`, `GIF`, `WebP`, `AVIF` etc. as generally used in web pages 😉
+It supports `PNG`, `JPEG`, `GIF`, `WebP` etc. as generally used in web pages 😉
+
+🔺AVIF is not currently supported.
 
 ## Installation
 
@@ -59,14 +61,22 @@ In addition, a delayed loading setting will be added!
 
 ## Precautions
 
-Images in markdown tables are not detected.
+🔺Currently, tailor is not able to handle multiple image files on a single line.
 
 Ex)
 
 ```markdown
-|Header Left|Header Right|
-|:---:|:---:|
-|![left](l.webp)|![right](r.webp)|
+![left](l.webp) ![right](r.webp)
+```
+
+🔺Images in markdown tables are not detected.
+
+Ex)
+
+```markdown
+|Header|
+|:---:|
+|![center](c.webp)|
 ```
 
 Naturally I would like to be able to detect and process this as well, but I must admit I am out of my depth...❗😿
