@@ -53,3 +53,62 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
     });
     Ok(book)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::measure;
+    use mdbook::book::Book;
+    use mdbook::book::{BookItem, Chapter};
+    use std::fs;
+    use std::fs::File;
+    use std::io::Write;
+
+    const CLR_RESET: &str = "\x1b[0m";
+    const CLR_R: &str = "\x1b[31m";
+
+    const TEST_DIR: &str = "test/";
+    const TEST_MD: &str = "test.md";
+
+    const RESULT_OK: &str = "ok.md";
+    const RESULT_NG_OUTPUT: &str = "result-ng.md";
+
+    fn write_chapters_to_files(chap: &Chapter) -> Result<(), Box<dyn std::error::Error>> {
+        let mut file = File::create(String::from(TEST_DIR) + RESULT_NG_OUTPUT)?;
+        file.write_all(chap.content.as_bytes())?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_measure() {
+        let mut book = Book::new();
+
+        book.push_item(BookItem::Chapter(Chapter::new(
+            "Test Chapter",
+            fs::read_to_string(String::from(TEST_DIR) + TEST_MD).unwrap(),
+            std::path::Path::new(TEST_MD),
+            vec![],
+        )));
+
+        match measure(TEST_DIR, book) {
+            Ok(book) => {
+                for item in book.iter() {
+                    if let BookItem::Chapter(chap) = item {
+                        let result_ok =
+                            fs::read_to_string(String::from(TEST_DIR) + RESULT_OK).unwrap();
+
+                        if chap.content != result_ok {
+                            write_chapters_to_files(chap)
+                                .unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {}", err));
+
+                            panic!("{CLR_R}[FAILED]{CLR_RESET} The conversion was not done correctly.");
+                        }
+                    }
+                }
+            }
+            Err(err) => {
+                panic!("ERROR: {}", err);
+            }
+        }
+    }
+}
