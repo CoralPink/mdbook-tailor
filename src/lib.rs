@@ -14,8 +14,7 @@ const CLR_Y: &str = "\x1b[33m";
 
 lazy_static! {
     static ref TAILOR_RE: Regex =
-        Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$")
-            .unwrap();
+        Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$").unwrap();
 }
 
 pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
@@ -57,11 +56,8 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
 #[cfg(test)]
 mod tests {
     use crate::measure;
-    use mdbook::book::Book;
-    use mdbook::book::{BookItem, Chapter};
-    use std::fs;
-    use std::fs::File;
-    use std::io::Write;
+    use mdbook::book::{Book, BookItem, Chapter};
+    use std::{fs, fs::File, io::Write};
 
     const CLR_RESET: &str = "\x1b[0m";
     const CLR_R: &str = "\x1b[31m";
@@ -91,7 +87,9 @@ mod tests {
             vec![],
         )));
 
-        println!("{CLR_C}[INFO]{CLR_RESET} Depending on the test case, [WARNING] may be displayed.");
+        println!(
+            "{CLR_C}[INFO]{CLR_RESET} Depending on the test case, [WARNING] may be displayed."
+        );
 
         match measure(TEST_DIR, book) {
             Ok(book) => {
@@ -104,7 +102,9 @@ mod tests {
                             write_chapters_to_files(chap)
                                 .unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {}", err));
 
-                            panic!("{CLR_R}[FAILED]{CLR_RESET} The conversion was not done correctly.");
+                            panic!(
+                                "{CLR_R}[FAILED]{CLR_RESET} The conversion was not done correctly."
+                            );
                         }
                     }
                 }
