@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 keywords = ["mdbook", "image", "tailor"]
 
 [dependencies]
-clap = "4.2"
+clap = "4.3"
 mdbook = "0.4"
 semver = "1.0"
 serde_json = "1.0"
