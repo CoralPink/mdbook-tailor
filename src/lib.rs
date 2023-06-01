@@ -58,6 +58,7 @@ mod tests {
     use crate::measure;
     use mdbook::book::{Book, BookItem, Chapter};
     use std::{fs, fs::File, io::Write};
+    use pretty_assertions::assert_eq;
 
     const CLR_RESET: &str = "\x1b[0m";
     const CLR_R: &str = "\x1b[31m";
@@ -66,11 +67,11 @@ mod tests {
     const TEST_DIR: &str = "test/";
     const TEST_MD: &str = "test.md";
 
-    const RESULT_OK: &str = "ok.md";
-    const RESULT_NG_OUTPUT: &str = "result-ng.md";
+    const OK_RESULT: &str = "ok.md";
+    const OUTPUT_RESULT: &str = "result.md";
 
     fn write_chapters_to_files(chap: &Chapter) -> Result<(), Box<dyn std::error::Error>> {
-        let mut file = File::create(String::from(TEST_DIR) + RESULT_NG_OUTPUT)?;
+        let mut file = File::create(String::from(TEST_DIR) + OUTPUT_RESULT)?;
         file.write_all(chap.content.as_bytes())?;
 
         Ok(())
@@ -95,22 +96,13 @@ mod tests {
             Ok(book) => {
                 for item in book.iter() {
                     if let BookItem::Chapter(chap) = item {
-                        let result_ok =
-                            fs::read_to_string(String::from(TEST_DIR) + RESULT_OK).unwrap();
-
-                        if chap.content != result_ok {
-                            write_chapters_to_files(chap)
-                                .unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {}", err));
-
-                            panic!(
-                                "{CLR_R}[FAILED]{CLR_RESET} The conversion was not done correctly."
-                            );
-                        }
+                        write_chapters_to_files(chap).unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {err}"));
+                        assert_eq!(chap.content, fs::read_to_string(String::from(TEST_DIR) + OK_RESULT).unwrap());
                     }
                 }
             }
             Err(err) => {
-                panic!("ERROR: {}", err);
+                panic!("ERROR: {err}");
             }
         }
     }
