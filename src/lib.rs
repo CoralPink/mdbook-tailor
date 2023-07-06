@@ -17,26 +17,45 @@ lazy_static! {
         Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$").unwrap();
 }
 
+fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
+    "<img src=\"".to_owned()
+        + url
+        + "\" alt=\""
+        + alt
+        + "\" width=\""
+        + &width.to_string()
+        + "\" height=\""
+        + &height.to_string()
+        + if count > 1 {
+            "\" loading=\"lazy\">"
+        }
+        else {
+            "\" decoding=\"async\">"
+        }
+}
+
 pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
     book.for_each_mut(|item| {
         if let BookItem::Chapter(chap) = item {
             let mdfile = chap.path.as_ref().map_or("", |p| p.to_str().unwrap_or(""));
             let dir = Path::new(mdfile).parent().unwrap_or_else(|| Path::new(""));
 
+            let mut count = 0;
+
             chap.content = TAILOR_RE
                 .replace_all(&chap.content, |caps: &regex::Captures| {
                     let url = caps.name("url").unwrap().as_str();
                     let path = Path::new(&src).join(dir.join(url));
+                    count += 1;
 
                     match open(&path) {
                         Ok(image) => {
-                            format!(
-                                "<img src=\"{}\" alt=\"{}\" width=\"{}\" height=\"{}\" loading=\"lazy\">",
+                            format_img_tag(
                                 url,
                                 caps.name("alt").unwrap().as_str(),
                                 image.width(),
                                 image.height(),
-                            )
+                                count)
                         }
                         Err(_) => {
                             eprintln!("{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
@@ -57,8 +76,8 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
 mod tests {
     use crate::measure;
     use mdbook::book::{Book, BookItem, Chapter};
-    use std::{fs, fs::File, io::Write};
     use pretty_assertions::assert_eq;
+    use std::{fs, fs::File, io::Write};
 
     const CLR_RESET: &str = "\x1b[0m";
     const CLR_R: &str = "\x1b[31m";
@@ -96,8 +115,12 @@ mod tests {
             Ok(book) => {
                 for item in book.iter() {
                     if let BookItem::Chapter(chap) = item {
-                        write_chapters_to_files(chap).unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {err}"));
-                        assert_eq!(chap.content, fs::read_to_string(String::from(TEST_DIR) + OK_RESULT).unwrap());
+                        write_chapters_to_files(chap)
+                            .unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {err}"));
+                        assert_eq!(
+                            chap.content,
+                            fs::read_to_string(String::from(TEST_DIR) + OK_RESULT).unwrap()
+                        );
                     }
                 }
             }
