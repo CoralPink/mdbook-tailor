@@ -17,7 +17,7 @@ mdbook = "0.4"
 semver = "1.0"
 serde_json = "1.0"
 lazy_static = "1.4"
-regex = "1.9"
+regex = "1.10"
 image = "0.24"
 
 [dev-dependencies]
