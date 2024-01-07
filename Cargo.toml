@@ -1,6 +1,6 @@
 [package]
 name = "mdbook-tailor"
-version = "0.5.3"
+version = "0.5.4"
 authors = ["CoralPink <teqt6ytqt@mozmail.com>"]
 edition = "2021"
 rust-version = "1.70"
@@ -22,3 +22,8 @@ image = "0.24"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
+
+[profile.release]
+lto = "thin"
+opt-level = 3
+strip = "symbols"
