@@ -12,8 +12,10 @@ const CLR_C: &str = "\x1b[36m";
 const CLR_M: &str = "\x1b[35m";
 const CLR_Y: &str = "\x1b[33m";
 
-static TAILOR_RE: Lazy<Regex> =
-    Lazy::new(|| Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$").unwrap());
+static TAILOR_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$")
+        .expect("Invalid regex for TAILOR_RE")
+});
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
     "<img src=\"".to_owned()
