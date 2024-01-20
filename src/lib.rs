@@ -1,9 +1,9 @@
 use image::open;
-use lazy_static::lazy_static;
 use mdbook::{
     book::{Book, BookItem},
     errors::Error,
 };
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::path::Path;
 
@@ -12,10 +12,8 @@ const CLR_C: &str = "\x1b[36m";
 const CLR_M: &str = "\x1b[35m";
 const CLR_Y: &str = "\x1b[33m";
 
-lazy_static! {
-    static ref TAILOR_RE: Regex =
-        Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$").unwrap();
-}
+static TAILOR_RE: Lazy<Regex> =
+    Lazy::new(|| Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$").unwrap());
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
     "<img src=\"".to_owned()
