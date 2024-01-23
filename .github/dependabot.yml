@@ -5,5 +5,5 @@ updates:
     schedule:
       interval: "daily"
     groups:
-      rust:
+      dependencies:
         dependency-type: "development"
