@@ -6,4 +6,5 @@ updates:
       interval: "daily"
     groups:
       dependencies:
-        dependency-type: "development"
+        patterns:
+          - "*"
