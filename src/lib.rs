@@ -12,26 +12,17 @@ const CLR_C: &str = "\x1b[36m";
 const CLR_M: &str = "\x1b[35m";
 const CLR_Y: &str = "\x1b[33m";
 
+const IMG_LAZY: &str = "loading=\"lazy\"";
+const IMG_ASYNC: &str = "decoding=\"async\"";
+
 static TAILOR_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$")
         .expect("Invalid regex for TAILOR_RE")
 });
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
-    "<img src=\"".to_owned()
-        + url
-        + "\" alt=\""
-        + alt
-        + "\" width=\""
-        + &width.to_string()
-        + "\" height=\""
-        + &height.to_string()
-        + if count > 1 {
-            "\" loading=\"lazy\">"
-        }
-        else {
-            "\" decoding=\"async\">"
-        }
+    let param = if count > 1 { IMG_LAZY } else { IMG_ASYNC };
+    format!("<img src=\"{url}\" alt=\"{alt}\" width=\"{width}\" height=\"{height}\" {param}>")
 }
 
 pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
