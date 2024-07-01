@@ -9,8 +9,7 @@
 		"dependencyDashboardApproval": true
 	},
 	"lockFileMaintenance": {
-		"enabled": true
-	},
-  // Temporary settings for operation checks.
-	"automergeSchedule": ["before 4am"]
+		"enabled": true,
+    "automerge": true
+	}
 }
