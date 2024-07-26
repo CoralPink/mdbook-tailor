@@ -3,9 +3,9 @@ use mdbook::{
     book::{Book, BookItem},
     errors::Error,
 };
-use once_cell::sync::Lazy;
 use regex::Regex;
 use std::path::Path;
+use std::sync::LazyLock;
 
 const CLR_RESET: &str = "\x1b[0m";
 const CLR_C: &str = "\x1b[36m";
@@ -15,7 +15,7 @@ const CLR_Y: &str = "\x1b[33m";
 const IMG_LAZY: &str = "loading=\"lazy\"";
 const IMG_ASYNC: &str = "decoding=\"async\"";
 
-static TAILOR_RE: Lazy<Regex> = Lazy::new(|| {
+static TAILOR_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$")
         .expect("Invalid regex for TAILOR_RE")
 });
