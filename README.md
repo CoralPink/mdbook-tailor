@@ -59,28 +59,6 @@ In addition, a delayed loading setting will be added!
 <img src="example.webp" alt="example" width="789" height="456" loading="lazy">
 ```
 
-## Precautions
-
-🔺Currently, tailor is not able to handle multiple image files on a single line.
-
-Ex)
-
-```markdown
-![left](l.webp) ![right](r.webp)
-```
-
-🔺Images in markdown tables are not detected.
-
-Ex)
-
-```markdown
-|Header|
-|:---:|
-|![center](c.webp)|
-```
-
-Naturally I would like to be able to detect and process this as well, but I must admit I am out of my depth...❗😿
-
 ## Example
 
 This is actually a site I am producing myself ☺️

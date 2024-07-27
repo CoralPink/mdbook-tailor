@@ -16,8 +16,7 @@ const IMG_LAZY: &str = "loading=\"lazy\"";
 const IMG_ASYNC: &str = "decoding=\"async\"";
 
 static TAILOR_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?m)^(\s*)!\[(?P<alt>[^]]*)]\((?P<url>[^)]*)\)$")
-        .expect("Invalid regex for TAILOR_RE")
+    Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE")
 });
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
