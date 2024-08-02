@@ -15,7 +15,7 @@ keywords = ["mdbook", "image", "tailor"]
 clap = "=4.5.13"
 image = "=0.25.2"
 mdbook = "=0.4.40"
-regex = "=1.10.5"
+regex = "=1.10.6"
 semver = "=1.0.23"
 serde_json = "=1.0.122"
 
