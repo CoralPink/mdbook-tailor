@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 keywords = ["mdbook", "image", "tailor"]
 
 [dependencies]
-clap = "=4.5.17"
+clap = "=4.5.18"
 image = "=0.25.2"
 mdbook = "=0.4.40"
 regex = "=1.10.6"
