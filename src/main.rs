@@ -27,10 +27,7 @@ mod tailor_lib {
 
         fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
             mdbook_tailor::measure(
-                ctx.config
-                    .get("build.src")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("src"),
+                ctx.config.get("build.src").and_then(|v| v.as_str()).unwrap_or("src"),
                 book,
             )
         }
@@ -52,17 +49,14 @@ pub fn make_app() -> Command {
 }
 
 fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
-    let renderer = sub_args
-        .get_one::<String>("renderer")
-        .expect("Required argument");
+    let renderer = sub_args.get_one::<String>("renderer").expect("Required argument");
 
     let supported = pre.supports_renderer(renderer);
 
     // Signal whether the renderer is supported by exiting with 1 or 0.
     if supported {
         process::exit(0);
-    }
-    else {
+    } else {
         process::exit(1);
     }
 }
@@ -94,8 +88,7 @@ fn main() {
 
     if let Some(sub_args) = matches.subcommand_matches("supports") {
         handle_supports(&preprocessor, sub_args);
-    }
-    else if let Err(e) = handle_preprocessing(&preprocessor) {
+    } else if let Err(e) = handle_preprocessing(&preprocessor) {
         eprintln!("{e}");
         process::exit(1);
     }

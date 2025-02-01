@@ -15,9 +15,8 @@ const CLR_Y: &str = "\x1b[33m";
 const IMG_LAZY: &str = "loading=\"lazy\"";
 const IMG_ASYNC: &str = "decoding=\"async\"";
 
-static TAILOR_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE")
-});
+static TAILOR_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE"));
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
     let param = if count > 1 { IMG_LAZY } else { IMG_ASYNC };
@@ -97,16 +96,13 @@ mod tests {
             vec![],
         )));
 
-        println!(
-            "{CLR_C}[INFO]{CLR_RESET} Depending on the test case, [WARNING] may be displayed."
-        );
+        println!("{CLR_C}[INFO]{CLR_RESET} Depending on the test case, [WARNING] may be displayed.");
 
         match measure(TEST_DIR, book) {
             Ok(book) => {
                 for item in book.iter() {
                     if let BookItem::Chapter(chap) = item {
-                        write_chapters_to_files(chap)
-                            .unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {err}"));
+                        write_chapters_to_files(chap).unwrap_or_else(|err| panic!("{CLR_R}ERROR{CLR_RESET}: {err}"));
                         assert_eq!(
                             chap.content,
                             fs::read_to_string(String::from(TEST_DIR) + OK_RESULT).unwrap()
