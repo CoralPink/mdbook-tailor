@@ -12,14 +12,14 @@ const CLR_C: &str = "\x1b[36m";
 const CLR_M: &str = "\x1b[35m";
 const CLR_Y: &str = "\x1b[33m";
 
-const IMG_LAZY: &str = "loading=\"lazy\"";
-const IMG_ASYNC: &str = "decoding=\"async\"";
+const IMG_LOADING_LAZY: &str = r#"loading="lazy""#;
+const IMG_FETCHPRIORITY_HIGH: &str = r#"fetchpriority="high""#;
 
 static TAILOR_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE"));
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
-    let param = if count > 1 { IMG_LAZY } else { IMG_ASYNC };
+    let param = if count > 1 { IMG_LOADING_LAZY } else { IMG_FETCHPRIORITY_HIGH };
     format!("<img src=\"{url}\" alt=\"{alt}\" width=\"{width}\" height=\"{height}\" {param}>")
 }
 
