@@ -2,9 +2,9 @@
 
 This is a preprocessor for [mdbook](https://github.com/rust-lang/mdBook).
 
-We plan to take some more time before a major release 🐣
+## Require
 
-_🔺It includes some issues as noted in [Issues](https://github.com/CoralPink/mdbook-tailor/issues)._
+mdbook v0.5.x
 
 ## Purpose
 

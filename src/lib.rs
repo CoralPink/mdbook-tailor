@@ -1,5 +1,5 @@
 use image::open;
-use mdbook::{
+use mdbook_preprocessor::{
     book::{Book, BookItem},
     errors::Error,
 };
@@ -19,22 +19,29 @@ static TAILOR_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE"));
 
 fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
-    let param = if count > 1 { IMG_LOADING_LAZY } else { IMG_FETCHPRIORITY_HIGH };
+    let param = if count > 1 {
+        IMG_LOADING_LAZY
+    } else {
+        IMG_FETCHPRIORITY_HIGH
+    };
     format!("<img src=\"{url}\" alt=\"{alt}\" width=\"{width}\" height=\"{height}\" {param}>")
 }
 
-pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
+pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
+    let src = src.as_ref();
+
     book.for_each_mut(|item| {
         if let BookItem::Chapter(chap) = item {
-            let mdfile = chap.path.as_ref().map_or("", |p| p.to_str().unwrap_or(""));
-            let dir = Path::new(mdfile).parent().unwrap_or_else(|| Path::new(""));
+            let mdfile = chap.path.as_ref().map_or(Path::new(""), |p| p.as_path());
+            let dir = mdfile.parent().unwrap_or_else(|| Path::new(""));
 
             let mut count = 0;
 
             chap.content = TAILOR_RE
                 .replace_all(&chap.content, |caps: &regex::Captures| {
                     let url = caps.name("url").unwrap().as_str();
-                    let path = Path::new(&src).join(dir.join(url));
+                    let path = src.join(dir).join(url);
+
                     count += 1;
 
                     match open(&path) {
@@ -44,27 +51,30 @@ pub fn measure(src: &str, mut book: Book) -> Result<Book, Error> {
                                 caps.name("alt").unwrap().as_str(),
                                 image.width(),
                                 image.height(),
-                                count)
+                                count,
+                            )
                         }
                         Err(_) => {
-                            eprintln!("{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
+                            eprintln!(
+                                "{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
                                 path.display(),
-                                mdfile
+                                mdfile.display()
                             );
-                            String::from(caps.get(0).map_or("", |x| x.as_str()))
-                        },
+                            caps.get(0).map_or("", |x| x.as_str()).to_string()
+                        }
                     }
                 })
                 .to_string();
         }
     });
+
     Ok(book)
 }
 
 #[cfg(test)]
 mod tests {
     use crate::measure;
-    use mdbook::book::{Book, BookItem, Chapter};
+    use mdbook_preprocessor::book::{Book, BookItem, Chapter};
     use pretty_assertions::assert_eq;
     use std::{fs, fs::File, io::Write};
 

@@ -1,13 +1,15 @@
 use crate::tailor_lib::Tailor;
 
 use clap::{Arg, ArgMatches, Command};
-use mdbook::{
+use mdbook_preprocessor::{
     book::Book,
-    errors::Error,
-    preprocess::{CmdPreprocessor, Preprocessor, PreprocessorContext},
+    errors::Result,
+    {Preprocessor, PreprocessorContext},
 };
 use semver::{Version, VersionReq};
 use std::{io, process};
+
+const DEFAULT_BOOK_SRC: &str = "src";
 
 mod tailor_lib {
     use super::*;
@@ -25,15 +27,12 @@ mod tailor_lib {
             "tailor-preprocessor"
         }
 
-        fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book, Error> {
-            mdbook_tailor::measure(
-                ctx.config.get("build.src").and_then(|v| v.as_str()).unwrap_or("src"),
-                book,
-            )
+        fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book> {
+            mdbook_tailor::measure(ctx.root.join(DEFAULT_BOOK_SRC.to_string()), book)
         }
 
-        fn supports_renderer(&self, renderer: &str) -> bool {
-            renderer != "not-supported"
+        fn supports_renderer(&self, renderer: &str) -> Result<bool> {
+            Ok(renderer != "not-supported")
         }
     }
 }
@@ -51,27 +50,25 @@ pub fn make_app() -> Command {
 fn handle_supports(pre: &dyn Preprocessor, sub_args: &ArgMatches) -> ! {
     let renderer = sub_args.get_one::<String>("renderer").expect("Required argument");
 
-    let supported = pre.supports_renderer(renderer);
-
     // Signal whether the renderer is supported by exiting with 1 or 0.
-    if supported {
+    if pre.supports_renderer(renderer).unwrap() {
         process::exit(0);
     } else {
         process::exit(1);
     }
 }
 
-fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<(), Error> {
-    let (ctx, book) = CmdPreprocessor::parse_input(io::stdin())?;
+fn handle_preprocessing(pre: &dyn Preprocessor) -> Result<()> {
+    let (ctx, book) = mdbook_preprocessor::parse_input(io::stdin())?;
 
     let book_version = Version::parse(&ctx.mdbook_version)?;
-    let version_req = VersionReq::parse(mdbook::MDBOOK_VERSION)?;
+    let version_req = VersionReq::parse(mdbook_preprocessor::MDBOOK_VERSION)?;
 
     if !version_req.matches(&book_version) {
         eprintln!(
             "Warning: The {} plugin was built against version {} of mdbook, but we're being called from version {}",
             pre.name(),
-            mdbook::MDBOOK_VERSION,
+            mdbook_preprocessor::MDBOOK_VERSION,
             ctx.mdbook_version
         );
     }
