@@ -16,13 +16,9 @@ Explicitly setting the width and height of image elements will reduce layout dev
 
 ## Corresponding image file
 
-The image files that this project can handle depend on Imaging library.
+It supports formats commonly used on web pages, such as `PNG`, `JPEG`, `GIF`, `WEBP`, and `Avif` 😉
 
-[An Image Processing Library](https://crates.io/crates/image)
-
-It supports `PNG`, `JPEG`, `GIF`, `WebP` etc. as generally used in web pages 😉
-
-🔺AVIF is not currently supported.
+(The supported image file formats comply with [imagesize](https://crates.io/crates/imagesize)
 
 ## Installation
 
