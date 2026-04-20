@@ -1,9 +1,9 @@
-use image::open;
 use mdbook_preprocessor::{
     book::{Book, BookItem},
     errors::Error,
 };
 use regex::Regex;
+use std::mem;
 use std::path::Path;
 use std::sync::LazyLock;
 
@@ -13,18 +13,52 @@ const CLR_M: &str = "\x1b[35m";
 const CLR_Y: &str = "\x1b[33m";
 
 const IMG_LOADING_LAZY: &str = r#"loading="lazy""#;
-const IMG_FETCHPRIORITY_HIGH: &str = r#"fetchpriority="high""#;
 
 static TAILOR_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE"));
 
-fn format_img_tag(url: &str, alt: &str, width: u32, height: u32, count: u32) -> String {
-    let param = if count > 1 {
-        IMG_LOADING_LAZY
-    } else {
-        IMG_FETCHPRIORITY_HIGH
-    };
-    format!("<img src=\"{url}\" alt=\"{alt}\" width=\"{width}\" height=\"{height}\" {param}>")
+struct StrBuf {
+    buf: String,
+    itoa: itoa::Buffer,
+}
+
+impl StrBuf {
+    fn new() -> Self {
+        Self {
+            buf: String::new(),
+            itoa: itoa::Buffer::new(),
+        }
+    }
+
+    fn push(&mut self, s: &str) {
+        self.buf.push_str(s);
+    }
+
+    fn push_usize(&mut self, v: usize) {
+        self.buf.push_str(self.itoa.format(v));
+    }
+
+    fn into_string(self) -> String {
+        self.buf
+    }
+}
+
+fn build_img_tag(buf: &mut StrBuf, url: &str, alt: &str, width: usize, height: usize, count: u32) {
+    buf.push("<img src=\"");
+    buf.push(url);
+    buf.push("\" alt=\"");
+    buf.push(alt);
+    buf.push("\" width=\"");
+    buf.push_usize(width);
+    buf.push("\" height=\"");
+    buf.push_usize(height);
+    buf.push("\"");
+
+    if count > 1 {
+        buf.push(" ");
+        buf.push(IMG_LOADING_LAZY);
+    }
+    buf.push(">");
 }
 
 pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
@@ -36,23 +70,31 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
             let dir = mdfile.parent().unwrap_or_else(|| Path::new(""));
 
             let mut count = 0;
+            let mut buf = StrBuf::new();
 
-            chap.content = TAILOR_RE
-                .replace_all(&chap.content, |caps: &regex::Captures| {
+            let content = mem::take(&mut chap.content);
+
+            buf.buf = TAILOR_RE
+                .replace_all(&content, |caps: &regex::Captures| {
                     let url = caps.name("url").unwrap().as_str();
                     let path = src.join(dir).join(url);
 
                     count += 1;
 
-                    match open(&path) {
-                        Ok(image) => {
-                            format_img_tag(
+                    match imagesize::size(&path) {
+                        Ok(size) => {
+                            let mut out = StrBuf::new();
+
+                            build_img_tag(
+                                &mut out,
                                 url,
                                 caps.name("alt").unwrap().as_str(),
-                                image.width(),
-                                image.height(),
+                                size.width,
+                                size.height,
                                 count,
-                            )
+                            );
+
+                            out.into_string()
                         }
                         Err(_) => {
                             eprintln!(
@@ -65,6 +107,8 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                     }
                 })
                 .to_string();
+
+            chap.content = buf.into_string();
         }
     });
 
@@ -76,7 +120,7 @@ mod tests {
     use crate::measure;
     use mdbook_preprocessor::book::{Book, BookItem, Chapter};
     use pretty_assertions::assert_eq;
-    use std::{fs, fs::File, io::Write};
+    use std::{fs, fs::File, io::Write, path::Path};
 
     const CLR_RESET: &str = "\x1b[0m";
     const CLR_R: &str = "\x1b[31m";
@@ -102,7 +146,7 @@ mod tests {
         book.push_item(BookItem::Chapter(Chapter::new(
             "Test Chapter",
             fs::read_to_string(String::from(TEST_DIR) + TEST_MD).unwrap(),
-            std::path::Path::new(TEST_MD),
+            Path::new(TEST_MD),
             vec![],
         )));
 

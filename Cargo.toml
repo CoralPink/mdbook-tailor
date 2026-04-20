@@ -12,11 +12,13 @@ license = "MIT OR Apache-2.0"
 keywords = ["mdbook", "image", "tailor"]
 
 [dependencies]
-clap = "4.5.39"
-image = "0.25.6"
-mdbook-preprocessor = "0.5.1"
-regex = "1.11.3"
-semver = "1.0.26"
+clap = "4.6.1"
+imagesize = "0.14.0"
+itoa = "1.0.18"
+mdbook-preprocessor = "0.5.2"
+memchr = "2.8.0"
+regex = "1.12.3"
+semver = "1.0.28"
 serde_json = "1.0.140"
 
 [dev-dependencies]

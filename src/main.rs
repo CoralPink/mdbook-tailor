@@ -28,7 +28,7 @@ mod tailor_lib {
         }
 
         fn run(&self, ctx: &PreprocessorContext, book: Book) -> Result<Book> {
-            mdbook_tailor::measure(ctx.root.join(DEFAULT_BOOK_SRC.to_string()), book)
+            mdbook_tailor::measure(ctx.root.join(DEFAULT_BOOK_SRC), book)
         }
 
         fn supports_renderer(&self, renderer: &str) -> Result<bool> {

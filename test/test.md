@@ -5,6 +5,7 @@
 ![jpg](test2.jpg)
 ![gif](test3.gif)
 ![webp](test4.webp)
+![avif](test5.avif)
 
 ## Directory
 ![dir](dir-test/test6.webp)
