@@ -2,10 +2,9 @@ use mdbook_preprocessor::{
     book::{Book, BookItem},
     errors::Error,
 };
+
 use regex::Regex;
-use std::mem;
-use std::path::Path;
-use std::sync::LazyLock;
+use std::{mem, path::Path, sync::LazyLock};
 
 const CLR_RESET: &str = "\x1b[0m";
 const CLR_C: &str = "\x1b[36m";
@@ -13,16 +12,17 @@ const CLR_M: &str = "\x1b[35m";
 const CLR_Y: &str = "\x1b[33m";
 
 const IMG_LOADING_LAZY: &str = r#"loading="lazy""#;
+const IMG_FETCHPRIORITY_HIGH: &str = r#"fetchpriority="high""#;
 
 static TAILOR_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE"));
 
-struct StrBuf {
+struct WriteBuf {
     buf: String,
     itoa: itoa::Buffer,
 }
 
-impl StrBuf {
+impl WriteBuf {
     fn new() -> Self {
         Self {
             buf: String::new(),
@@ -30,7 +30,11 @@ impl StrBuf {
         }
     }
 
-    fn push(&mut self, s: &str) {
+    fn push_char(&mut self, c: char) {
+        self.buf.push(c);
+    }
+
+    fn push_str(&mut self, s: &str) {
         self.buf.push_str(s);
     }
 
@@ -43,22 +47,25 @@ impl StrBuf {
     }
 }
 
-fn build_img_tag(buf: &mut StrBuf, url: &str, alt: &str, width: usize, height: usize, count: u32) {
-    buf.push("<img src=\"");
-    buf.push(url);
-    buf.push("\" alt=\"");
-    buf.push(alt);
-    buf.push("\" width=\"");
+fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, width: usize, height: usize, count: u32) {
+    buf.push_str("<img src=\"");
+    buf.push_str(url);
+    buf.push_str("\" alt=\"");
+    buf.push_str(alt);
+    buf.push_str("\" width=\"");
     buf.push_usize(width);
-    buf.push("\" height=\"");
+    buf.push_str("\" height=\"");
     buf.push_usize(height);
-    buf.push("\"");
+    buf.push_str("\"");
+    buf.push_char(' ');
 
-    if count > 1 {
-        buf.push(" ");
-        buf.push(IMG_LOADING_LAZY);
+    if count == 1 {
+        buf.push_str(IMG_FETCHPRIORITY_HIGH);
+    } else {
+        buf.push_str(IMG_LOADING_LAZY);
     }
-    buf.push(">");
+
+    buf.push_char('>');
 }
 
 pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
@@ -70,11 +77,10 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
             let dir = mdfile.parent().unwrap_or_else(|| Path::new(""));
 
             let mut count = 0;
-            let mut buf = StrBuf::new();
 
             let content = mem::take(&mut chap.content);
 
-            buf.buf = TAILOR_RE
+            chap.content = TAILOR_RE
                 .replace_all(&content, |caps: &regex::Captures| {
                     let url = caps.name("url").unwrap().as_str();
                     let path = src.join(dir).join(url);
@@ -83,7 +89,7 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
 
                     match imagesize::size(&path) {
                         Ok(size) => {
-                            let mut out = StrBuf::new();
+                            let mut out = WriteBuf::new();
 
                             build_img_tag(
                                 &mut out,
@@ -107,8 +113,6 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                     }
                 })
                 .to_string();
-
-            chap.content = buf.into_string();
         }
     });
 

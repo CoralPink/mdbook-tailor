@@ -1,7 +1,7 @@
 # TEST
 
 ## Extension
-<img src="test1.png" alt="png" width="50" height="28">
+<img src="test1.png" alt="png" width="50" height="28" fetchpriority="high">
 <img src="test2.jpg" alt="jpg" width="59" height="34" loading="lazy">
 <img src="test3.gif" alt="gif" width="59" height="44" loading="lazy">
 <img src="test4.webp" alt="webp" width="59" height="44" loading="lazy">
@@ -26,3 +26,7 @@
 |Header Left|Header Center|Header Right|
 |:---:|:---:|:---:|
 |<img src="test4.webp" alt="left" width="59" height="44" loading="lazy">|<img src="test3.gif" alt="gif" width="59" height="44" loading="lazy">|<img src="dir-test/test6.webp" alt="right" width="59" height="44" loading="lazy">|
+
+## alt
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">

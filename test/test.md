@@ -26,3 +26,7 @@
 |Header Left|Header Center|Header Right|
 |:---:|:---:|:---:|
 |![left](test4.webp)|![gif](test3.gif)|![right](dir-test/test6.webp)|
+
+## alt
+![avif](test5.avif)
+![エーブイアイえふ](test5.avif)
