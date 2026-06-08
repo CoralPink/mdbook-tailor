@@ -180,7 +180,6 @@ dependencies = [
  "imagesize",
  "itoa",
  "mdbook-preprocessor",
- "memchr",
  "pretty_assertions",
  "regex",
  "semver",

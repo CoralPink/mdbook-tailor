@@ -15,11 +15,10 @@ keywords = ["mdbook", "image", "tailor"]
 clap = "4.6.1"
 imagesize = "0.14.0"
 itoa = "1.0.18"
-mdbook-preprocessor = "0.5.2"
-memchr = "2.8.0"
+mdbook-preprocessor = "0.5.3"
 regex = "1.12.3"
 semver = "1.0.28"
-serde_json = "1.0.140"
+serde_json = "1.0.150"
 
 [dev-dependencies]
 pretty_assertions = "=1.4.1"
