@@ -10,6 +10,9 @@
 ## Directory
 ![dir](dir-test/test6.webp)
 
+## Extension 2
+![jxl](test7.jxl)
+
 ## Not found
 ![not found](test11.png)
 

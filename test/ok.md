@@ -10,6 +10,9 @@
 ## Directory
 <img src="dir-test/test6.webp" alt="dir" width="59" height="44" loading="lazy">
 
+## Extension 2
+<img src="test7.jxl" alt="jxl" width="50" height="28" loading="lazy">
+
 ## Not found
 ![not found](test11.png)
 
