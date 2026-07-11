@@ -3,8 +3,8 @@ use mdbook_preprocessor::{
     errors::Error,
 };
 
-use regex::Regex;
-use std::{mem, path::Path, sync::LazyLock};
+use regex::regex;
+use std::{mem, path::Path};
 
 const CLR_RESET: &str = "\x1b[0m";
 const CLR_C: &str = "\x1b[36m";
@@ -13,9 +13,6 @@ const CLR_Y: &str = "\x1b[33m";
 
 const IMG_LOADING_LAZY: &str = r#"loading="lazy""#;
 const IMG_FETCHPRIORITY_HIGH: &str = r#"fetchpriority="high""#;
-
-static TAILOR_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"!\[(?P<alt>[^\]]*)]\((?P<url>[^\)]*)\)").expect("Invalid regex for TAILOR_RE"));
 
 struct WriteBuf {
     buf: String,
@@ -80,7 +77,7 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
 
             let content = mem::take(&mut chap.content);
 
-            chap.content = TAILOR_RE
+            chap.content = regex!(r"!\[(?P<alt>[^\]]*)\]\((?P<url>[^\)]*)\)")
                 .replace_all(&content, |caps: &regex::Captures| {
                     let url = caps.name("url").unwrap().as_str();
                     let path = src.join(dir).join(url);
