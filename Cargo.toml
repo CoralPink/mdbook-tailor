@@ -1,9 +1,9 @@
 [package]
 name = "mdbook-tailor"
-version = "2.1.1"
+version = "2.2.0"
 authors = ["CoralPink <teqt6ytqt@mozmail.com>"]
 edition = "2024"
-rust-version = "1.88"
+rust-version = "1.98"
 description = "mdbook preprocessor for image-tailor"
 documentation = "https://github.com/CoralPink/mdbook-tailor/blob/main/README.md"
 homepage = "https://github.com/CoralPink"
@@ -14,7 +14,6 @@ keywords = ["mdbook", "image", "tailor"]
 [dependencies]
 clap = "4.6.1"
 imagesize = "0.15.0"
-itoa = "1.0.18"
 mdbook-preprocessor = "0.5.4"
 regex = "1.12.4"
 semver = "1.0.28"

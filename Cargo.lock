@@ -174,11 +174,10 @@ dependencies = [
 
 [[package]]
 name = "mdbook-tailor"
-version = "2.1.1"
+version = "2.2.0"
 dependencies = [
  "clap",
  "imagesize",
- "itoa",
  "mdbook-preprocessor",
  "pretty_assertions",
  "regex",

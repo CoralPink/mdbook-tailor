@@ -2,9 +2,10 @@
 
 This is a preprocessor for [mdbook](https://github.com/rust-lang/mdBook).
 
-## Require
+## Requirements
 
-mdbook v0.5.x
+- Rust 1.98 or later
+- mdbook 0.5.x
 
 ## Purpose
 

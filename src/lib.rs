@@ -1,8 +1,8 @@
+use core::fmt::NumBuffer;
 use mdbook_preprocessor::{
     book::{Book, BookItem},
     errors::Error,
 };
-
 use regex::regex;
 use std::{mem, path::Path};
 
@@ -16,14 +16,14 @@ const IMG_FETCHPRIORITY_HIGH: &str = r#"fetchpriority="high""#;
 
 struct WriteBuf {
     buf: String,
-    itoa: itoa::Buffer,
+    num_buf: NumBuffer<usize>,
 }
 
 impl WriteBuf {
     fn new() -> Self {
         Self {
             buf: String::new(),
-            itoa: itoa::Buffer::new(),
+            num_buf: NumBuffer::new(),
         }
     }
 
@@ -36,7 +36,7 @@ impl WriteBuf {
     }
 
     fn push_usize(&mut self, v: usize) {
-        self.buf.push_str(self.itoa.format(v));
+        self.buf.push_str(v.format_into(&mut self.num_buf));
     }
 
     fn into_string(self) -> String {
