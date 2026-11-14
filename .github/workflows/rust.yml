@@ -31,8 +31,6 @@ jobs:
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v2.0.1
-        with:
-          toolchain: stable
 
       - name: Run Tests
         run: cargo test --verbose

@@ -4,7 +4,7 @@ This is a preprocessor for [mdbook](https://github.com/rust-lang/mdBook).
 
 ## Requirements
 
-- Rust 1.98 or later
+- Rust 1.100 or later
 - mdbook 0.5.x
 
 ## Purpose
