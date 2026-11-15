@@ -33,7 +33,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v2.0.1
 
       - name: Run Tests
-        run: cargo test --verbose
+        run: cargo test --locked
 
       - name: Build
-        run: cargo build --verbose
+        run: cargo build --locked
