@@ -17,6 +17,7 @@
     // Run lock file maintenance (updates) early Monday mornings.
     ":maintainLockFilesWeekly",
   ],
+  "minimumReleaseAgePackageManagerSync": true,
   "labels": [
     "dependencies"
   ],
