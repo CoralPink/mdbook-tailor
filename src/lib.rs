@@ -3,8 +3,8 @@ use mdbook_preprocessor::{
     book::{Book, BookItem},
     errors::Error,
 };
-use regex::regex;
-use std::{mem, path::Path};
+use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd};
+use std::{mem, ops::Range, path::Path};
 
 const CLR_RESET: &str = "\x1b[0m";
 const CLR_C: &str = "\x1b[36m";
@@ -65,6 +65,22 @@ fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, width: usize, height:
     buf.push_char('>');
 }
 
+fn escape_html_attr(value: &str) -> String {
+    let mut escaped = String::with_capacity(value.len());
+
+    for ch in value.chars() {
+        match ch {
+            '&' => escaped.push_str("&amp;"),
+            '"' => escaped.push_str("&quot;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            _ => escaped.push(ch),
+        }
+    }
+
+    escaped
+}
+
 pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
     let src = src.as_ref();
 
@@ -72,44 +88,73 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
         if let BookItem::Chapter(chap) = item {
             let mdfile = chap.path.as_ref().map_or(Path::new(""), |p| p.as_path());
             let dir = mdfile.parent().unwrap_or_else(|| Path::new(""));
-
-            let mut count = 0;
-
             let content = mem::take(&mut chap.content);
 
-            chap.content = regex!(r"!\[(?P<alt>[^\]]*)\]\((?P<url>[^\)]*)\)")
-                .replace_all(&content, |caps: &regex::Captures| {
-                    let url = caps.name("url").unwrap().as_str();
-                    let path = src.join(dir).join(url);
+            let mut replacements: Vec<(Range<usize>, String)> = Vec::new();
+            let mut count = 0;
 
-                    count += 1;
+            let parser = Parser::new_ext(&content, Options::all()).into_offset_iter();
+            let mut events = parser.peekable();
 
-                    match imagesize::size(&path) {
-                        Ok(size) => {
-                            let mut out = WriteBuf::new();
+            while let Some((event, range)) = events.next() {
+                let Event::Start(Tag::Image { dest_url, .. }) = event else {
+                    continue;
+                };
 
-                            build_img_tag(
-                                &mut out,
-                                url,
-                                caps.name("alt").unwrap().as_str(),
-                                size.width,
-                                size.height,
-                                count,
-                            );
+                let image_range = range;
+                let url = dest_url.to_string();
 
-                            out.into_string()
-                        }
-                        Err(_) => {
-                            eprintln!(
-                                "{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
-                                path.display(),
-                                mdfile.display()
-                            );
-                            caps.get(0).map_or("", |x| x.as_str()).to_string()
-                        }
+                // Constructing `alt` text from an event's sub-events
+                let mut alt = String::new();
+                for (child, _) in events.by_ref() {
+                    match child {
+                        Event::End(TagEnd::Image) => break,
+                        Event::Text(text) | Event::Code(text) => alt.push_str(&text),
+                        Event::SoftBreak | Event::HardBreak => alt.push(' '),
+                        _ => {}
                     }
-                })
-                .to_string();
+                }
+
+                count += 1;
+
+                let path = src.join(dir).join(&url);
+                match imagesize::size(&path) {
+                    Ok(size) => {
+                        let mut out = WriteBuf::new();
+                        build_img_tag(
+                            &mut out,
+                            &escape_html_attr(&url),
+                            &escape_html_attr(&alt),
+                            size.width,
+                            size.height,
+                            count,
+                        );
+
+                        replacements.push((image_range, out.into_string()));
+                    }
+                    Err(_) => {
+                        // Images that failed to process will not be added to the replacement list and will remain in Markdown format.
+                        eprintln!(
+                            "{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
+                            path.display(),
+                            mdfile.display()
+                        );
+                    }
+                }
+            }
+
+            // Only the specified range will be replaced.
+            let mut output = String::with_capacity(content.len());
+            let mut copied_until = 0;
+
+            for (range, replacement) in replacements {
+                output.push_str(&content[copied_until..range.start]);
+                output.push_str(&replacement);
+                copied_until = range.end;
+            }
+
+            output.push_str(&content[copied_until..]);
+            chap.content = output;
         }
     });
 
