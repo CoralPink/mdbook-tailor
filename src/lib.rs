@@ -236,4 +236,72 @@ mod tests {
             }
         }
     }
+
+    fn measure_content(content: &str) -> String {
+        let mut book = Book::new();
+
+        book.push_item(BookItem::Chapter(Chapter::new(
+            "Test Chapter",
+            content.to_owned(),
+            Path::new(TEST_MD),
+            vec![],
+        )));
+
+        let book = measure(TEST_DIR, book).expect("measure should succeed");
+
+        book.iter()
+            .find_map(|item| match item {
+                BookItem::Chapter(chap) => Some(chap.content.clone()),
+                _ => None,
+            })
+            .expect("book should contain a chapter")
+    }
+
+    #[test]
+    fn preserves_and_escapes_image_title() {
+        let output = measure_content(r#"![caption](test1.png 'A "quote" & <tag>')"#);
+
+        assert!(output.contains(
+        r#"<img src="test1.png" alt="caption" title="A &quot;quote&quot; &amp; &lt;tag&gt;" width="50" height="28" fetchpriority="high">"#
+    ));
+    }
+
+    #[test]
+    fn omits_empty_image_title() {
+        let output = measure_content(r#"![empty title](test1.png "")"#);
+
+        assert!(
+            output.contains(r#"<img src="test1.png" alt="empty title" width="50" height="28" fetchpriority="high">"#)
+        );
+        assert!(!output.contains(r#"title=""#));
+    }
+
+    #[test]
+    fn handles_nested_images_and_following_sibling() {
+        let output = measure_content(
+            "![before ![middle ![inner](test3.gif) after inner](test2.jpg) after middle](test1.png)![sibling](test2.jpg)",
+        );
+
+        assert!(output.contains(
+            r#"<img src="test1.png" alt="before middle inner after inner after middle" width="50" height="28" fetchpriority="high"><img src="test2.jpg" alt="sibling" width="59" height="34" loading="lazy">"#
+        ));
+    }
+
+    #[test]
+    fn handles_nested_image_when_outer_image_is_missing() {
+        let output = measure_content("![unmeasured ![inner](test3.gif)](test11.png)![sibling](test2.jpg)");
+
+        assert!(output.contains(
+            r#"![unmeasured ![inner](test3.gif)](test11.png)<img src="test2.jpg" alt="sibling" width="59" height="34" loading="lazy">"#
+        ));
+    }
+
+    #[test]
+    fn preserves_math_in_image_alt() {
+        let output = measure_content(r"![inline $x < y$ and display $$a > b & c$$](test1.png)");
+
+        assert!(output.contains(
+            r#"<img src="test1.png" alt="inline $x &lt; y$ and display $$a &gt; b &amp; c$$" width="50" height="28" fetchpriority="high">"#
+        ));
+    }
 }
