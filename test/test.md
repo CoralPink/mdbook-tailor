@@ -33,3 +33,10 @@
 ## alt
 ![avif](test5.avif)
 ![エーブイアイえふ](test5.avif)
+
+## Image metadata
+![caption](test1.png 'A "quote" & <tag>')
+![empty title](test1.png "")
+![before ![middle ![inner](test3.gif) after inner](test2.jpg) after middle](test1.png)![sibling](test2.jpg)
+![unmeasured ![inner](test3.gif)](test11.png)![sibling](test2.jpg)
+![inline $x < y$ and display $$a > b & c$$](test1.png)
