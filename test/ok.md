@@ -67,6 +67,11 @@
     ![エーブイアイえふ](test5.avif)
 </media-slider>
 
+```admonish info
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+```
+
 ~~~admonish info
 <media-slider role="group" aria-roledescription="carousel" aria-label="admonish-slider-1">
 <img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
@@ -87,3 +92,10 @@
 <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
 </media-slider>
 ~~~
+
+<span>
+
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+
+</span>

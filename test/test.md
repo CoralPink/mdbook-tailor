@@ -67,6 +67,11 @@
     ![エーブイアイえふ](test5.avif)
 ```
 
+```admonish info
+![avif](test5.avif)
+![エーブイアイえふ](test5.avif)
+```
+
 ~~~admonish info
 ```media-slider aria-label="admonish-slider-1"
 ![avif](test5.avif)
@@ -87,3 +92,10 @@
 ![エーブイアイえふ](test5.avif)
 ```
 ~~~
+
+<span>
+
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+
+</span>
