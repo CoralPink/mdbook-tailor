@@ -33,3 +33,10 @@
 ## alt
 <img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
 <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+
+## Image metadata
+<img src="test1.png" alt="caption" title="A &quot;quote&quot; &amp; &lt;tag&gt;" width="50" height="28" loading="lazy">
+<img src="test1.png" alt="empty title" width="50" height="28" loading="lazy">
+<img src="test1.png" alt="before middle inner after inner after middle" width="50" height="28" loading="lazy"><img src="test2.jpg" alt="sibling" width="59" height="34" loading="lazy">
+![unmeasured ![inner](test3.gif)](test11.png)<img src="test2.jpg" alt="sibling" width="59" height="34" loading="lazy">
+<img src="test1.png" alt="inline $x &lt; y$ and display $$a &gt; b &amp; c$$" width="50" height="28" loading="lazy">

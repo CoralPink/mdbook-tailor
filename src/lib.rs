@@ -44,11 +44,15 @@ impl WriteBuf {
     }
 }
 
-fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, width: usize, height: usize, count: u32) {
+fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, title: &str, width: usize, height: usize, count: u32) {
     buf.push_str("<img src=\"");
     buf.push_str(url);
     buf.push_str("\" alt=\"");
     buf.push_str(alt);
+    if !title.is_empty() {
+        buf.push_str("\" title=\"");
+        buf.push_str(&escape_html_attr(title));
+    }
     buf.push_str("\" width=\"");
     buf.push_usize(width);
     buf.push_str("\" height=\"");
@@ -97,7 +101,10 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
             let mut events = parser.peekable();
 
             while let Some((event, range)) = events.next() {
-                let Event::Start(Tag::Image { dest_url, .. }) = event else {
+                let Event::Start(Tag::Image {
+                    dest_url, title, ..
+                }) = event
+                else {
                     continue;
                 };
 
@@ -106,10 +113,23 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
 
                 // Constructing `alt` text from an event's sub-events
                 let mut alt = String::new();
+                let mut nested_images = 0;
                 for (child, _) in events.by_ref() {
                     match child {
-                        Event::End(TagEnd::Image) => break,
+                        Event::Start(Tag::Image { .. }) => nested_images += 1,
+                        Event::End(TagEnd::Image) if nested_images == 0 => break,
+                        Event::End(TagEnd::Image) => nested_images -= 1,
                         Event::Text(text) | Event::Code(text) => alt.push_str(&text),
+                        Event::InlineMath(text) => {
+                            alt.push('$');
+                            alt.push_str(&text);
+                            alt.push('$');
+                        }
+                        Event::DisplayMath(text) => {
+                            alt.push_str("$$");
+                            alt.push_str(&text);
+                            alt.push_str("$$");
+                        }
                         Event::SoftBreak | Event::HardBreak => alt.push(' '),
                         _ => {}
                     }
@@ -125,6 +145,7 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                             &mut out,
                             &escape_html_attr(&url),
                             &escape_html_attr(&alt),
+                            &title,
                             size.width,
                             size.height,
                             count,
