@@ -304,4 +304,27 @@ mod tests {
             r#"<img src="test1.png" alt="inline $x &lt; y$ and display $$a &gt; b &amp; c$$" width="50" height="28" fetchpriority="high">"#
         ));
     }
+
+    #[test]
+    fn leaves_image_like_text_in_code_unmodified() {
+        let input = "Inline `![literal](test1.png)`\n\n\
+                     ```text\n\
+                     ![literal](test1.png)\n\
+                     ```\n";
+
+        let output = measure_content(input);
+
+        assert_eq!(output, input);
+    }
+
+    #[test]
+    fn converts_reference_style_image() {
+        let input = "![logo][logo]\n\n[logo]: test1.png\n";
+        let output = measure_content(input);
+
+        assert!(output.contains(
+            r#"<img src="test1.png" alt="logo" width="50" height="28" fetchpriority="high">"#
+        ));
+        assert!(output.contains("[logo]: test1.png"));
+    }
 }
