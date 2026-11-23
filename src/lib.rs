@@ -49,10 +49,12 @@ fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, title: &str, width: u
     buf.push_str(url);
     buf.push_str("\" alt=\"");
     buf.push_str(alt);
+
     if !title.is_empty() {
         buf.push_str("\" title=\"");
         buf.push_str(&escape_html_attr(title));
     }
+
     buf.push_str("\" width=\"");
     buf.push_usize(width);
     buf.push_str("\" height=\"");
@@ -322,9 +324,7 @@ mod tests {
         let input = "![logo][logo]\n\n[logo]: test1.png\n";
         let output = measure_content(input);
 
-        assert!(output.contains(
-            r#"<img src="test1.png" alt="logo" width="50" height="28" fetchpriority="high">"#
-        ));
+        assert!(output.contains(r#"<img src="test1.png" alt="logo" width="50" height="28" fetchpriority="high">"#));
         assert!(output.contains("[logo]: test1.png"));
     }
 }
