@@ -99,3 +99,10 @@
 <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
 
 </span>
+
+<div>
+
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+
+</div>
