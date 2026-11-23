@@ -40,3 +40,50 @@
 ![before ![middle ![inner](test3.gif) after inner](test2.jpg) after middle](test1.png)![sibling](test2.jpg)
 ![unmeasured ![inner](test3.gif)](test11.png)![sibling](test2.jpg)
 ![inline $x < y$ and display $$a > b & c$$](test1.png)
+
+## media-slider
+```media-slider aria-label="アルバムの画像"
+![avif](test5.avif)
+![エーブイアイえふ](test5.avif)
+```
+
+```media-slider aria-label="slider-space1"
+ ![avif](test5.avif)
+ ![エーブイアイえふ](test5.avif)
+```
+
+```media-slider aria-label="slider-space2"
+  ![avif](test5.avif)
+  ![エーブイアイえふ](test5.avif)
+```
+
+```media-slider aria-label="slider-space3"
+   ![avif](test5.avif)
+   ![エーブイアイえふ](test5.avif)
+```
+
+```media-slider aria-label="slider-space4 (Since it is treated as a code block, it is not converted)"
+    ![avif](test5.avif)
+    ![エーブイアイえふ](test5.avif)
+```
+
+~~~admonish info
+```media-slider aria-label="admonish-slider-1"
+![avif](test5.avif)
+![エーブイアイえふ](test5.avif)
+```
+~~~
+
+````admonish info
+```media-slider aria-label="admonish-slider-2"
+![avif](test5.avif)
+![エーブイアイえふ](test5.avif)
+```
+````
+
+~~~admonish info title="adomonish-abc"
+```media-slider aria-label="adomonish-slider-title"
+![avif](test5.avif)
+![エーブイアイえふ](test5.avif)
+```
+~~~

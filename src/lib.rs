@@ -44,6 +44,199 @@ impl WriteBuf {
     }
 }
 
+#[derive(Clone)]
+enum FenceKind {
+    Admonish,
+    MediaSlider(Option<String>),
+    Other,
+}
+
+struct FenceFrame {
+    marker: char,
+    len: usize,
+    kind: FenceKind,
+    open_range: Range<usize>,
+}
+
+fn fence_open(line: &str) -> Option<(char, usize, &str)> {
+    let indent = line.bytes().take_while(|&b| b == b' ').count();
+
+    if indent > 3 {
+        return None;
+    }
+
+    let rest = &line[indent..];
+    let marker = rest.chars().next()?;
+
+    if marker != '`' && marker != '~' {
+        return None;
+    }
+
+    let len = rest.bytes().take_while(|&b| b == marker as u8).count();
+
+    if len < 3 {
+        return None;
+    }
+
+    let info = rest[len..].trim();
+
+    // In CommonMark, backquotes cannot be included in the info string of a backquote fence.
+    if marker == '`' && info.contains('`') {
+        return None;
+    }
+
+    Some((marker, len, info))
+}
+
+fn fence_close(line: &str, marker: char, min_len: usize) -> bool {
+    let indent = line.bytes().take_while(|&b| b == b' ').count();
+
+    if indent > 3 {
+        return false;
+    }
+
+    let rest = &line[indent..];
+    let len = rest.bytes().take_while(|&b| b == marker as u8).count();
+
+    len >= min_len && rest[len..].trim().is_empty()
+}
+
+fn escape_html_attr(value: &str) -> String {
+    let mut escaped = String::with_capacity(value.len());
+
+    for ch in value.chars() {
+        match ch {
+            '&' => escaped.push_str("&amp;"),
+            '"' => escaped.push_str("&quot;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            _ => escaped.push(ch),
+        }
+    }
+
+    escaped
+}
+
+fn media_slider_open_tag(label: Option<&str>) -> String {
+    let mut tag = String::from("<media-slider role=\"group\" aria-roledescription=\"carousel\"");
+
+    if let Some(label) = label {
+        tag.push_str(" aria-label=\"");
+        tag.push_str(&escape_html_attr(label));
+        tag.push('"');
+    }
+
+    tag.push('>');
+    tag
+}
+
+fn first_info_word(info: &str) -> &str {
+    info.split_ascii_whitespace().next().unwrap_or("")
+}
+
+fn media_slider_label(info: &str) -> Option<String> {
+    if first_info_word(info) != "media-slider" {
+        return None;
+    }
+
+    let attrs = info.strip_prefix("media-slider").unwrap_or("").trim_start();
+
+    let value = attrs.split_once("aria-label=")?.1.trim_start().strip_prefix('"')?;
+
+    let end = value.find('"')?;
+    Some(value[..end].to_owned())
+}
+
+fn prepare_media_slider(content: &str) -> (String, Vec<(Range<usize>, String)>) {
+    let mut parser_bytes = content.as_bytes().to_vec();
+    let mut blank_ranges = Vec::new();
+    let mut replacements = Vec::new();
+    let mut stack: Vec<FenceFrame> = Vec::new();
+    let mut offset = 0;
+
+    for line in content.split_inclusive('\n') {
+        let without_lf = line.strip_suffix('\n').unwrap_or(line);
+        let body = without_lf.strip_suffix('\r').unwrap_or(without_lf);
+        let line_range = offset..offset + body.len();
+
+        if let Some(frame) = stack.pop_if(|frame| fence_close(body, frame.marker, frame.len)) {
+            match frame.kind {
+                FenceKind::Admonish => {
+                    blank_ranges.push(frame.open_range);
+                    blank_ranges.push(line_range);
+                }
+                FenceKind::MediaSlider(label) => {
+                    blank_ranges.push(frame.open_range.clone());
+                    blank_ranges.push(line_range.clone());
+
+                    replacements.push((frame.open_range, media_slider_open_tag(label.as_deref())));
+                    replacements.push((line_range, "</media-slider>".to_owned()));
+                }
+                FenceKind::Other => {}
+            }
+
+            offset += line.len();
+            continue;
+        }
+
+        if stack
+            .last()
+            .is_some_and(|frame| matches!(&frame.kind, FenceKind::Other))
+        {
+            offset += line.len();
+            continue;
+        }
+
+        if let Some((marker, len, info)) = fence_open(body) {
+            let parent = stack.last().map(|frame| &frame.kind);
+
+            let kind = match parent {
+                // Within `admonish`, it recognizes `media-slider` and standard code fences.
+                Some(FenceKind::Admonish) => {
+                    if first_info_word(info) == "media-slider" {
+                        FenceKind::MediaSlider(media_slider_label(info))
+                    } else {
+                        FenceKind::Other
+                    }
+                }
+
+                // Code fences within `media-slider` should be protected as regular code.
+                Some(FenceKind::MediaSlider(_)) => FenceKind::Other,
+
+                // Do not look for nested syntax within standard code fences.
+                Some(FenceKind::Other) => {
+                    offset += line.len();
+                    continue;
+                }
+
+                // Recognize “admonish” and “media-slider” at the top level of the document.
+                None if first_info_word(info) == "admonish" => FenceKind::Admonish,
+                None if first_info_word(info) == "media-slider" => FenceKind::MediaSlider(media_slider_label(info)),
+                None => FenceKind::Other,
+            };
+
+            stack.push(FenceFrame {
+                marker,
+                len,
+                kind,
+                open_range: line_range,
+            });
+        }
+
+        offset += line.len();
+    }
+
+    // By replacing the marker lines with spaces of the same number of bytes, the parser's offset will match that of the original Markdown.
+    for range in blank_ranges {
+        parser_bytes[range].fill(b' ');
+    }
+
+    (
+        String::from_utf8(parser_bytes).expect("replacing ASCII fence lines preserves UTF-8"),
+        replacements,
+    )
+}
+
 fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, title: &str, width: usize, height: usize, count: u32) {
     buf.push_str("<img src=\"");
     buf.push_str(url);
@@ -71,22 +264,6 @@ fn build_img_tag(buf: &mut WriteBuf, url: &str, alt: &str, title: &str, width: u
     buf.push_char('>');
 }
 
-fn escape_html_attr(value: &str) -> String {
-    let mut escaped = String::with_capacity(value.len());
-
-    for ch in value.chars() {
-        match ch {
-            '&' => escaped.push_str("&amp;"),
-            '"' => escaped.push_str("&quot;"),
-            '<' => escaped.push_str("&lt;"),
-            '>' => escaped.push_str("&gt;"),
-            _ => escaped.push(ch),
-        }
-    }
-
-    escaped
-}
-
 pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
     let src = src.as_ref();
 
@@ -94,19 +271,17 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
         if let BookItem::Chapter(chap) = item {
             let mdfile = chap.path.as_ref().map_or(Path::new(""), |p| p.as_path());
             let dir = mdfile.parent().unwrap_or_else(|| Path::new(""));
+
             let content = mem::take(&mut chap.content);
+            let (parser_content, mut replacements) = prepare_media_slider(&content);
 
-            let mut replacements: Vec<(Range<usize>, String)> = Vec::new();
-            let mut count = 0;
-
-            let parser = Parser::new_ext(&content, Options::all()).into_offset_iter();
+            let parser = Parser::new_ext(&parser_content, Options::all()).into_offset_iter();
             let mut events = parser.peekable();
 
+            let mut count = 0;
+
             while let Some((event, range)) = events.next() {
-                let Event::Start(Tag::Image {
-                    dest_url, title, ..
-                }) = event
-                else {
+                let Event::Start(Tag::Image { dest_url, title, .. }) = event else {
                     continue;
                 };
 
@@ -116,12 +291,21 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                 // Constructing `alt` text from an event's sub-events
                 let mut alt = String::new();
                 let mut nested_images = 0;
+
                 for (child, _) in events.by_ref() {
                     match child {
-                        Event::Start(Tag::Image { .. }) => nested_images += 1,
-                        Event::End(TagEnd::Image) if nested_images == 0 => break,
-                        Event::End(TagEnd::Image) => nested_images -= 1,
-                        Event::Text(text) | Event::Code(text) => alt.push_str(&text),
+                        Event::Start(Tag::Image { .. }) => {
+                            nested_images += 1;
+                        }
+                        Event::End(TagEnd::Image) if nested_images == 0 => {
+                            break;
+                        }
+                        Event::End(TagEnd::Image) => {
+                            nested_images -= 1;
+                        }
+                        Event::Text(text) | Event::Code(text) => {
+                            alt.push_str(&text);
+                        }
                         Event::InlineMath(text) => {
                             alt.push('$');
                             alt.push_str(&text);
@@ -132,7 +316,9 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                             alt.push_str(&text);
                             alt.push_str("$$");
                         }
-                        Event::SoftBreak | Event::HardBreak => alt.push(' '),
+                        Event::SoftBreak | Event::HardBreak => {
+                            alt.push(' ');
+                        }
                         _ => {}
                     }
                 }
@@ -140,9 +326,11 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                 count += 1;
 
                 let path = src.join(dir).join(&url);
+
                 match imagesize::size(&path) {
                     Ok(size) => {
                         let mut out = WriteBuf::new();
+
                         build_img_tag(
                             &mut out,
                             &escape_html_attr(&url),
@@ -158,7 +346,8 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
                     Err(_) => {
                         // Images that failed to process will not be added to the replacement list and will remain in Markdown format.
                         eprintln!(
-                            "{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
+                            "{CLR_Y}[Warning]{CLR_RESET} Tailor could not find: \
+                             {CLR_M}{}{CLR_RESET} From {CLR_C}{}{CLR_RESET}",
                             path.display(),
                             mdfile.display()
                         );
@@ -167,6 +356,8 @@ pub fn measure(src: impl AsRef<Path>, mut book: Book) -> Result<Book, Error> {
             }
 
             // Only the specified range will be replaced.
+            replacements.sort_by_key(|(range, _)| range.start);
+
             let mut output = String::with_capacity(content.len());
             let mut copied_until = 0;
 
