@@ -134,6 +134,18 @@ fn first_info_word(info: &str) -> &str {
     info.split_ascii_whitespace().next().unwrap_or("")
 }
 
+fn is_div_wrapper_line(line: &str) -> bool {
+    let tag = line.trim();
+
+    if tag == "</div>" {
+        return true;
+    }
+
+    tag.strip_prefix("<div")
+        .and_then(|rest| rest.chars().next())
+        .is_some_and(|next| (next.is_ascii_whitespace() || next == '>') && tag.ends_with('>'))
+}
+
 fn media_slider_label(info: &str) -> Option<String> {
     if first_info_word(info) != "media-slider" {
         return None;
@@ -185,6 +197,21 @@ fn prepare_media_slider(content: &str) -> (String, Vec<(Range<usize>, String)>) 
         {
             offset += line.len();
             continue;
+        }
+
+        // CommonMark treats a `<div>` block as raw HTML, so Markdown inside it
+        // (including images that need measuring) is never emitted as parser events.
+        // Hide standalone div wrapper lines while parsing and restore them by offset.
+        if stack
+            .iter()
+            .any(|frame| matches!(&frame.kind, FenceKind::MediaSlider(_)))
+        {
+            if is_div_wrapper_line(body) {
+                parser_bytes[line_range.clone()].fill(b' ');
+                replacements.push((line_range, body.to_owned()));
+                offset += line.len();
+                continue;
+            }
         }
 
         if let Some((marker, len, info)) = fence_open(body) {
