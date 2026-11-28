@@ -1,4 +1,4 @@
-use crate::tailor_lib::Tailor;
+use std::{io, process};
 
 use clap::{Arg, ArgMatches, Command};
 use mdbook_preprocessor::{
@@ -7,7 +7,8 @@ use mdbook_preprocessor::{
     {Preprocessor, PreprocessorContext},
 };
 use semver::{Version, VersionReq};
-use std::{io, process};
+
+use crate::tailor_lib::Tailor;
 
 const DEFAULT_BOOK_SRC: &str = "src";
 
