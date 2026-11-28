@@ -76,6 +76,41 @@
     ![エーブイアイえふ](test5.avif)
 ```
 
+```media-slider aria-label="example"
+![avif](test5.avif)
+<div>
+  ![エーブイアイえふ](test5.avif)
+</div>
+```
+
+```media-slider aria-label="example"
+![avif](test5.avif)
+<div>
+  テスト
+  ![エーブイアイえふ](test5.avif)
+</div>
+```
+
+```media-slider aria-label="example"
+![avif](test5.avif)
+<div>
+ テスト1
+ ![エーブイアイえふ](test5.avif)
+ <div>
+  テスト2
+  ![エーブイアイえふ](test5.avif)
+ </div>
+</div>
+```
+
+```media-slider aria-label="example2"
+![avif](test5.avif)
+<div class="ft-definition">
+ ![エーブイアイえふ](test5.avif)
+ テスト
+</div>
+```
+
 # Admonish
 
 ```admonish info

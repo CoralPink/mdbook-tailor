@@ -76,6 +76,41 @@
     ![エーブイアイえふ](test5.avif)
 </media-slider>
 
+<media-slider role="group" aria-roledescription="carousel" aria-label="example">
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<div>
+  <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+</div>
+</media-slider>
+
+<media-slider role="group" aria-roledescription="carousel" aria-label="example">
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<div>
+  テスト
+  <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+</div>
+</media-slider>
+
+<media-slider role="group" aria-roledescription="carousel" aria-label="example">
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<div>
+ テスト1
+ <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+ <div>
+  テスト2
+  <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+ </div>
+</div>
+</media-slider>
+
+<media-slider role="group" aria-roledescription="carousel" aria-label="example2">
+<img src="test5.avif" alt="avif" width="59" height="44" loading="lazy">
+<div class="ft-definition">
+ <img src="test5.avif" alt="エーブイアイえふ" width="59" height="44" loading="lazy">
+ テスト
+</div>
+</media-slider>
+
 # Admonish
 
 ```admonish info
