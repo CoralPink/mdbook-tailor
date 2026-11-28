@@ -189,7 +189,7 @@ dependencies = [
 
 [[package]]
 name = "mdbook-tailor"
-version = "3.0.0-beta.1"
+version = "3.0.0-beta.2"
 dependencies = [
  "clap",
  "imagesize",
